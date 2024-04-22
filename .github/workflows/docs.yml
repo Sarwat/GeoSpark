@@ -19,8 +19,9 @@ jobs:
       with:
         fetch-depth: 0
     - name: Set up Java
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v4
       with:
+        distribution: 'zulu'
         java-version: '8'
     - name: Compile JavaDoc
       run: mvn -q clean install -DskipTests && mkdir -p docs/api/javadoc/spark && cp -r spark/common/target/apidocs/* docs/api/javadoc/spark/
@@ -29,6 +30,7 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: 3.x
+    - run: pip install mkdocs-jupyter
     - run: pip install mkdocs-material
     - run: pip install mkdocs-macros-plugin
     - run: pip install mkdocs-git-revision-date-localized-plugin
@@ -49,6 +51,7 @@ jobs:
     - run: git config --global user.name = "GitHub Action"
     - run: git config --global user.email = "test@abc.com"
     - run: mkdocs build
+    - run: git fetch origin website --depth=1
     - name: Deploy the doc to the website branch
       if: ${{ github.event_name != 'pull_request' }}
       run: mike deploy latest-snapshot -b website -p

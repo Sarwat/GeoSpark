@@ -50,7 +50,7 @@ nav:
       - Sedona with Apache Flink:
         - Spatial SQL app (Flink): tutorial/flink/sql.md
       - Sedona with Snowflake:
-        - Spatial SQL app (Flink): tutorial/snowflake/sql.md
+        - Spatial SQL app (Snowflake): tutorial/snowflake/sql.md
       - Examples:
           - Scala/Java: tutorial/demo.md
           - Python: tutorial/jupyter-notebook.md
@@ -110,10 +110,10 @@ nav:
         - Vote a release: community/vote.md
       - Publications: community/publication.md
     - Use cases:
-      - Use cases: usecases/usecases.md
-      - Spatially aggregate airports per country: https://nbviewer.org/github/apache/sedona/blob/master/binder/ApacheSedonaSQL_SpatialJoin_AirportsPerCountry.ipynb" target="_blank
-      - Match foot traffic to Seattle coffee shops: https://nbviewer.org/github/jiayuasu/sigspatial-2021-cafe-analysis/blob/master/notebooks/Workshop_example.ipynb" target="_blank
-      - Raster image manipulation: https://nbviewer.org/github/johnymontana/raster-data-analysis-spatial-sql/blob/main/00-raster-data-analysis.ipynb" target="_blank
+      - Spatially aggregate airports per country: usecases/ApacheSedonaSQL_SpatialJoin_AirportsPerCountry.ipynb
+      - Match foot traffic to Seattle coffee shops: usecases/contrib/foot-traffic.ipynb
+      - Raster image manipulation: usecases/ApacheSedonaRaster.ipynb
+      - Read Overture Maps data: usecases/Sedona_OvertureMaps_GeoParquet.ipynb
     - Apache Software Foundation:
       - Foundation: asf/asf.md
       - License: https://www.apache.org/licenses/" target="_blank
@@ -153,7 +153,7 @@ extra:
     - icon: fontawesome/brands/twitter
       link: 'https://twitter.com/ApacheSedona'
     - icon: fontawesome/brands/discord
-      link: './community/discord-invite-form.html'
+      link: 'https://share.hsforms.com/1Ndql_ZigTdmLlVQc_d1o4gqga4q'
   sedona:
     current_version: 1.5.1
     current_geotools: 1.5.1-28.2
@@ -163,7 +163,7 @@ extra:
     current_rc: 1.5.1-rc1
     current_snapshot: 1.5.1-SNAPSHOT
     next_version: 1.6.0
-copyright: Copyright © 2024 The Apache Software Foundation. Apache Sedona, Sedona, Apache, the Apache feather logo, and the Apache Sedona project logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries. All other marks mentioned may be trademarks or registered trademarks of their respective owners. Please visit <a href="http://www.apache.org/">Apache Software Foundation</a> for more details.
+copyright: Copyright © 2024 The Apache Software Foundation. Apache Sedona, Sedona, Apache, the Apache feather logo, and the Apache Sedona project logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries. All other marks mentioned may be trademarks or registered trademarks of their respective owners. Please visit <a href="http://www.apache.org/">Apache Software Foundation</a> for more details.<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=f3e121f6-c909-4592-8be6-5bd345768cba" />
 
 markdown_extensions:
   - admonition
@@ -196,3 +196,4 @@ plugins:
   - macros
   - git-revision-date-localized:
       type: datetime
+  - mkdocs-jupyter

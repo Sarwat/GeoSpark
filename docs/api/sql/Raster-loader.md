@@ -157,6 +157,7 @@ SELECT RS_MakeEmptyRaster(2, 'F', 10, 10, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0, 4326) -
 ```
 
 Output:
+
 ```
 +------------------------------------------------------------------+
 |rs_makeemptyraster(2, 10, 10, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0, 4326)|
@@ -208,7 +209,7 @@ This API requires the name of the record variable. It is assumed that a variable
 
 If this assumption does not hold true for your case, you can choose to pass the lonDimensionName and latDimensionName explicitly.
 
-You can use [RS_NetCDFInfo](./#rs_netcdfinfo) to get the details of the passed netCDF file (variables and its dimensions).
+You can use [RS_NetCDFInfo](#rs_netcdfinfo) to get the details of the passed netCDF file (variables and its dimensions).
 
 Format 1: `RS_FromNetCDF(netCDF: ARRAY[Byte], recordVariableName: String)`
 
