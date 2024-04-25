@@ -6,15 +6,13 @@ You just need to install the Sedona jars and Sedona Python on Databricks using D
 
 We recommend Databricks 10.x+.
 
-!!!tip
-	Wherobots Cloud provides a free tool to deploy Apache Sedona to Databricks. Please sign up [here](https://www.wherobots.services/).
-
 * Sedona 1.0.1 & 1.1.0 is compiled against Spark 3.1 (~ Databricks DBR 9 LTS, DBR 7 is Spark 3.0)
 * Sedona 1.1.1, 1.2.0 are compiled against Spark 3.2 (~ DBR 10 & 11)
 * Sedona 1.2.1, 1.3.1, 1.4.0 are complied against Spark 3.3
 * 1.4.1, 1.5.0 are complied against Spark 3.3, 3.4, 3.5
 
 > In Spark 3.2, `org.apache.spark.sql.catalyst.expressions.Generator` class added a field `nodePatterns`. Any SQL functions that rely on Generator class may have issues if compiled for a runtime with a differing spark version. For Sedona, those functions are:
+>
 >    * ST_MakeValid
 >    * ST_SubDivideExplode
 
