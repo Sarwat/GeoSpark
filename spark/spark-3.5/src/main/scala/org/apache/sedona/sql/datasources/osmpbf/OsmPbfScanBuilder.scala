@@ -16,7 +16,7 @@ case class OsmPbfScanBuilder(
   path: String,
 ) extends FileScanBuilder(sparkSession, fileIndex, dataSchema) {
 
-  val factor = 12
+  val factor = 100
 
   override def build(): Scan = {
     val paths = fileIndex.allFiles().map(_.getPath.toString)
@@ -27,10 +27,10 @@ case class OsmPbfScanBuilder(
 
     val length = stream.available
 
-    val chunk = length/factor
+    val chunk = length/(factor*10)
 
     val chunks = (0 until factor).map { i =>
-      (i * chunk, (i+1) * chunk)
+      ((i*10 * ()) * chunk, ((i+1)/10) * chunk)
     }
 
     val fileIndexAdjusted = new InMemoryFileIndex(

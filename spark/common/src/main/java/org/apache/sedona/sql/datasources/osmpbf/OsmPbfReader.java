@@ -2,14 +2,17 @@ package org.apache.sedona.sql.datasources.osmpbf;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 import org.apache.sedona.sql.datasources.osmpbf.build.Fileformat;
 import org.apache.sedona.sql.datasources.osmpbf.build.Osmformat;
 import org.apache.sedona.sql.datasources.osmpbf.features.DenseNodeParser;
+import org.apache.sedona.sql.datasources.osmpbf.features.RelationParser;
 import org.apache.sedona.sql.datasources.osmpbf.features.WayParser;
 import org.apache.sedona.sql.datasources.osmpbf.model.OsmPbfRecord;
 
@@ -28,10 +31,18 @@ public class OsmPbfReader {
     int recordIndex = 0;
 
     public OsmPbfReader(OsmPbfOptions options) throws IOException {
-        this.stream = new FileInputStream(options.inputPath);
-        stream.skip(options.startOffset);
+        long currentTime = System.currentTimeMillis();
 
-        this.pbfStream = new DataInputStream(stream);
+        RandomAccessFile randomAccessFile = new RandomAccessFile(new File(options.inputPath), "r");
+        randomAccessFile.seek(options.startOffset);
+
+        this.pbfStream = new DataInputStream(
+                new FileInputStream(randomAccessFile.getFD())
+        );
+        this.stream = new FileInputStream(randomAccessFile.getFD());
+
+        System.out.println("Time to read file: " + (System.currentTimeMillis() - currentTime) + "for file offset " + options.startOffset + " - " + options.endOffset);
+
         endOffset = options.endOffset;
         startOffset = options.startOffset;
     }
@@ -98,16 +109,21 @@ public class OsmPbfReader {
         int granularity = pb.getGranularity();
         Osmformat.StringTable stringTable = pb.getStringtable();
 
+        records = new ArrayList<>();
+
         for (Osmformat.PrimitiveGroup group : pb.getPrimitivegroupList()) {
             OsmDataType type = FeatureParser.getType(group);
 
             if (type == OsmDataType.DENSE_NODE) {
                 DenseNodeParser denseNodeParser = new DenseNodeParser(granularity, latOffset, lonOffset);
-                records = denseNodeParser.parse(group.getDense(), stringTable);
+                records.addAll(denseNodeParser.parse(group.getDense(), stringTable));
                 recordIndex = 0;
             } else if (type == OsmDataType.WAY) {
                 WayParser wayParser = new WayParser();
-                records = wayParser.parse(group.getWaysList(), stringTable);
+                records.addAll(wayParser.parse(group.getWaysList(), stringTable));
+                recordIndex = 0;
+            } else if (type == OsmDataType.RELATION) {
+                records.addAll(RelationParser.parse(group.getRelationsList(), stringTable));
                 recordIndex = 0;
             }
              else {

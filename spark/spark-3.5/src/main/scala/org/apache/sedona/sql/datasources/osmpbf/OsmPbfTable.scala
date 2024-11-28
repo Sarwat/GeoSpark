@@ -18,18 +18,30 @@ case class OsmPbfTable(
 
   override def inferSchema(files: Seq[FileStatus]): Option[StructType] = {
     Some(StructType(Seq(
-      StructField("id", StringType, nullable = false),
-      StructField("location", StructType(
+      StructField("node", StructType(
         Seq(
-          StructField("longitude", DoubleType, nullable = false),
-          StructField("latitude", DoubleType, nullable = false),
+          StructField("id", LongType, nullable = false),
+          StructField("location", StructType(
+            Seq(
+              StructField("longitude", DoubleType, nullable = false),
+              StructField("latitude", DoubleType, nullable = false),
+            )
+          ), nullable = false),
+          StructField("tags", MapType(StringType, StringType, valueContainsNull = true), nullable = true),
         )
-      ), nullable = false),
-      StructField("tags", MapType(StringType, StringType, valueContainsNull = true), nullable = true),
-      StructField("ways", StructType(
+      ), nullable = true),
+      StructField("way", StructType(
         Seq(
           StructField("id", LongType, nullable = false),
           StructField("refs", ArrayType(LongType), nullable = false),
+          StructField("tags", MapType(StringType, StringType, valueContainsNull = true), nullable = true),
+        )
+      ), nullable = true),
+      StructField("relation", StructType(
+        Seq(
+          StructField("id", LongType, nullable = false),
+          StructField("member_ids", ArrayType(LongType), nullable = false),
+          StructField("types", ArrayType(StringType), nullable = false),
           StructField("tags", MapType(StringType, StringType, valueContainsNull = true), nullable = true),
         )
       ), nullable = true),

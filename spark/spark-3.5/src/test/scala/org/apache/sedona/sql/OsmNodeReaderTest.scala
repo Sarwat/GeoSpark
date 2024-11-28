@@ -9,13 +9,13 @@ class OsmNodeReaderTest extends TestBaseScala with Matchers {
       sparkSession
         .read
         .format("osmpbf")
-        .load("/Users/pawelkocinski/Desktop/projects/osm-data-reader/src/main/resources/lubuskie-latest.osm.pbf")
+        .load("/Users/pawelkocinski/Desktop/projects/osm-data-reader/src/main/resources/poland-latest.osm.pbf")
 //        .load("/Users/pawelkocinski/Desktop/projects/osm-data-reader/src/main/resources/poland-latest.osm.pbf")
         .createOrReplaceTempView("osm")
 
       sparkSession.sql("SELECT * FROM osm")
-        .where("ways is not null and size(ways.tags) > 0")
-        .show(5, false)
+//        .where("relation is not null AND size(relation.tags) > 0")
+        .count()
     }
   }
 
