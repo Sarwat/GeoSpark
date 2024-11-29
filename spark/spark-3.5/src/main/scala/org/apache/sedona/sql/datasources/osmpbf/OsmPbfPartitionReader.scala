@@ -1,23 +1,33 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.sedona.sql.datasources.osmpbf
 
-import org.apache.sedona.sql.datasources.geopackage.model.GeoPackageReadOptions
-import org.apache.sedona.sql.datasources.osmpbf.build.Osmformat.Way
-import org.apache.sedona.sql.datasources.osmpbf.model.{OsmNode, OsmPbfRecord}
-import org.apache.spark.broadcast.Broadcast
+import org.apache.sedona.sql.datasources.osmpbf.model.OsmPbfRecord
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.util.{ArrayBasedMapData, ArrayData, GenericArrayData}
+import org.apache.spark.sql.catalyst.util.{ArrayBasedMapData, ArrayData}
 import org.apache.spark.sql.connector.read.PartitionReader
 import org.apache.spark.unsafe.types.UTF8String
-import org.apache.spark.util.SerializableConfiguration
 
-import java.io.File
 import java.util
-import scala.collection.immutable.Seq
 import scala.reflect.ClassTag
 
-case class OsmPbfPartitionReader(
-  reader: OsmPbfReader
-) extends PartitionReader[InternalRow] {
+case class OsmPbfPartitionReader(reader: OsmPbfReader) extends PartitionReader[InternalRow] {
 
   implicit val f1: () => Seq[Long] = () => Seq().map(Long.unbox)
   implicit val f2: () => Seq[UTF8String] = () => Seq()
@@ -32,11 +42,7 @@ case class OsmPbfPartitionReader(
       return InternalRow.fromSeq(Seq(null, null, null))
     }
 
-    InternalRow.fromSeq(Seq(
-      resolveNode(record),
-      resolveWay(record),
-      resolveRelation(record)
-    ))
+    InternalRow.fromSeq(Seq(resolveNode(record), resolveWay(record), resolveRelation(record)))
   }
 
   private def resolveRelation(record: OsmPbfRecord): InternalRow = {
@@ -48,12 +54,12 @@ case class OsmPbfPartitionReader(
 
     val tags = transformTags(relation.getTags)
 
-    InternalRow.fromSeq(Seq(
-      relation.getId,
-      transformList[java.lang.Long, Long](relation.getMemberIds),
-      transformList[java.lang.String, UTF8String](relation.getTypes),
-      tags
-    ))
+    InternalRow.fromSeq(
+      Seq(
+        relation.getId,
+        transformList[java.lang.Long, Long](relation.getMemberIds),
+        transformList[java.lang.String, UTF8String](relation.getTypes),
+        tags))
   }
 
   private def resolveWay(record: OsmPbfRecord): InternalRow = {
@@ -65,11 +71,7 @@ case class OsmPbfPartitionReader(
 
     val tags = transformTags(way.getTags)
 
-    InternalRow.fromSeq(Seq(
-      way.getId,
-      transformList[java.lang.Long, Long](way.getRefs),
-      tags
-    ))
+    InternalRow.fromSeq(Seq(way.getId, transformList[java.lang.Long, Long](way.getRefs), tags))
   }
 
   private def resolveNode(record: OsmPbfRecord): InternalRow = {
@@ -79,29 +81,22 @@ case class OsmPbfPartitionReader(
       return null
     }
 
-    InternalRow.fromSeq(Seq(
-      UTF8String.fromString(record.getNode.getId.toString),
-      InternalRow.fromSeq(Seq(
-        node.getLatitude,
-        node.getLongitude,
-      )),
-      transformTags(node.getTags)
-    ))
+    InternalRow.fromSeq(
+      Seq(
+        UTF8String.fromString(record.getNode.getId.toString),
+        InternalRow.fromSeq(Seq(node.getLatitude, node.getLongitude)),
+        transformTags(node.getTags)))
   }
 
-  def transformList[T <: java.lang.Object, R: ClassTag](data: util.List[T])(
-    implicit f: () => Seq[R],
-    t: T => R,
-  ): ArrayData = {
+  def transformList[T <: java.lang.Object, R: ClassTag](
+      data: util.List[T])(implicit f: () => Seq[R], t: T => R): ArrayData = {
     var refs = f()
 
     data.forEach(r => {
       refs :+= t(r)
     })
 
-    val refsArray = ArrayData.toArrayData(Array(
-      refs:_*
-    ))
+    val refsArray = ArrayData.toArrayData(Array(refs: _*))
 
     refsArray
   }
@@ -115,16 +110,14 @@ case class OsmPbfPartitionReader(
       values :+= UTF8String.fromString(v)
     })
 
-    val keyArray = ArrayData.toArrayData(Array(
-      keys:_*
-    ))
+    val keyArray = ArrayData.toArrayData(Array(keys: _*))
 
-    val valArray = ArrayData.toArrayData(Array(
-      values:_*
-    ))
+    val valArray = ArrayData.toArrayData(Array(values: _*))
 
     new ArrayBasedMapData(keyArray, valArray)
   }
 
-  override def close(): Unit = {}
+  override def close(): Unit = {
+    reader.close()
+  }
 }

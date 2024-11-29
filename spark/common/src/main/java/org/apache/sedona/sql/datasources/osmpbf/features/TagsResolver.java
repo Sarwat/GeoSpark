@@ -16,21 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.sedona.sql.datasources.osmpbf
+package org.apache.sedona.sql.datasources.osmpbf.features;
 
-import org.apache.spark.sql.connector.catalog.Table
-import org.apache.spark.sql.execution.datasources.FileFormat
-import org.apache.spark.sql.execution.datasources.v2.FileDataSourceV2
-import org.apache.spark.sql.sources.DataSourceRegister
-import org.apache.spark.sql.util.CaseInsensitiveStringMap
+import java.util.HashMap;
+import java.util.function.Function;
+import org.apache.sedona.sql.datasources.osmpbf.build.Osmformat;
 
-class OsmPbfDataSource extends FileDataSourceV2 with DataSourceRegister {
+public class TagsResolver {
+  public static HashMap<String, String> resolveTags(
+      int keysCount,
+      Function<Integer, Integer> getKey,
+      Function<Integer, Integer> getValue,
+      Osmformat.StringTable stringTable) {
+    HashMap<String, String> tags = new HashMap<>();
 
-  override protected def getTable(options: CaseInsensitiveStringMap): Table = {
-    OsmPbfTable(sparkSession, options, getPaths(options), None)
+    for (int i = 0; i < keysCount; i++) {
+      int key = getKey.apply(i);
+      int value = getValue.apply(i);
+
+      String keyString = stringTable.getS(key).toStringUtf8();
+      String valueString = stringTable.getS(value).toStringUtf8();
+      tags.put(keyString, valueString);
+    }
+
+    return tags;
   }
-
-  override def shortName(): _root_.scala.Predef.String = "osmpbf"
-
-  override def fallbackFileFormat: Class[_ <: FileFormat] = null
 }

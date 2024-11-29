@@ -1,77 +1,85 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.sedona.sql.datasources.osmpbf.features;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.sedona.sql.datasources.osmpbf.build.Osmformat;
 import org.apache.sedona.sql.datasources.osmpbf.model.OsmPbfRecord;
 import org.apache.sedona.sql.datasources.osmpbf.model.OsmRelation;
 import org.apache.sedona.sql.datasources.osmpbf.model.RelationType;
 
 public class RelationParser {
-    public static ArrayList<OsmPbfRecord> parse(List<Osmformat.Relation> relations, Osmformat.StringTable stringTable) {
-        ArrayList<OsmPbfRecord> records = new ArrayList<>();
-        if (relations == null || relations.isEmpty()) {
-            return records;
-        }
-
-        for (Osmformat.Relation relation : relations) {
-            List<Long> memberIds = resolveMemberIds(relation);
-            List<String> memberTypes = resolveTypes(relation);
-
-            HashMap<String, String> tags = resolveTags(relation, stringTable);
-
-            OsmRelation relationObj = new OsmRelation(
-                    relation.getId(),
-                    memberIds,
-                    tags,
-                    memberTypes
-            );
-
-            records.add(new OsmPbfRecord(relationObj));
-        }
-
-        return records;
+  public static List<OsmPbfRecord> parseRelations(
+      List<Osmformat.Relation> relations, Osmformat.StringTable stringTable) {
+    if (relations == null || relations.isEmpty()) {
+      return new ArrayList<>();
     }
 
-    public static List<Long> resolveMemberIds(Osmformat.Relation relation) {
-        List<Long> memberIds = new ArrayList<>();
+    return relations.stream()
+        .map(relation -> parse(relation, stringTable))
+        .collect(Collectors.toList());
+  }
 
-        if (relation.getMemidsCount() != 0) {
-            long firstId = relation.getMemids(0);
-            memberIds.add(firstId);
-
-            for (int i = 1; i < relation.getMemidsCount(); i++) {
-                memberIds.add(relation.getMemids(i) + firstId);
-            }
-        }
-
-        return memberIds;
+  private static OsmPbfRecord parse(
+      Osmformat.Relation relation, Osmformat.StringTable stringTable) {
+    if (relation == null) {
+      return null;
     }
 
-    public static List<String> resolveTypes(Osmformat.Relation relation) {
-        List<String> types = new ArrayList<>();
+    List<Long> memberIds = resolveMemberIds(relation);
+    List<String> memberTypes = resolveTypes(relation);
 
-        for (int i = 0; i < relation.getTypesCount(); i++) {
-            Osmformat.Relation.MemberType memberType = relation.getTypes(i);
-            types.add(RelationType.fromValue(memberType.getNumber()));
-        }
+    HashMap<String, String> tags =
+        TagsResolver.resolveTags(
+            relation.getKeysCount(), relation::getKeys, relation::getVals, stringTable);
 
-        return types;
+    OsmRelation relationObj = new OsmRelation(relation.getId(), memberIds, tags, memberTypes);
+
+    return new OsmPbfRecord(relationObj);
+  }
+
+  public static List<Long> resolveMemberIds(Osmformat.Relation relation) {
+    List<Long> memberIds = new ArrayList<>();
+
+    if (relation.getMemidsCount() != 0) {
+      long firstId = relation.getMemids(0);
+      memberIds.add(firstId);
+
+      for (int i = 1; i < relation.getMemidsCount(); i++) {
+        memberIds.add(relation.getMemids(i) + firstId);
+      }
     }
 
-    public static HashMap<String, String> resolveTags(Osmformat.Relation relation, Osmformat.StringTable stringTable) {
-        HashMap<String, String> tags = new HashMap<>();
+    return memberIds;
+  }
 
-        for (int i = 0; i < relation.getKeysCount(); i++) {
-            int key = relation.getKeys(i);
-            int value = relation.getVals(i);
+  public static List<String> resolveTypes(Osmformat.Relation relation) {
+    List<String> types = new ArrayList<>();
 
-            String keyString = stringTable.getS(key).toStringUtf8();
-            String valueString = stringTable.getS(value).toStringUtf8();
-            tags.put(keyString, valueString);
-        }
-
-        return tags;
+    for (int i = 0; i < relation.getTypesCount(); i++) {
+      Osmformat.Relation.MemberType memberType = relation.getTypes(i);
+      types.add(RelationType.fromValue(memberType.getNumber()));
     }
+
+    return types;
+  }
 }

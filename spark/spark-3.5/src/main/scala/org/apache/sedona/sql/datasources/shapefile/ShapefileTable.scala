@@ -77,6 +77,7 @@ case class ShapefileTable(
               val schemas = iter.map { stat =>
                 val fs = stat.getPath.getFileSystem(serializableConf.value)
                 val stream = fs.open(stat.getPath)
+
                 try {
                   val dbfParser = new DbfParseUtil()
                   dbfParser.parseFileHead(stream)
